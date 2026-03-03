@@ -426,7 +426,7 @@ class BroadcastService {
     try {
       const { error } = await supabase
         .from('users')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .update({ is_active: false, updated_at: new Date().toISOString() } as never)
         .in('telegram_id', telegramIds);
 
       if (error) {

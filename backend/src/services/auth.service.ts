@@ -96,13 +96,13 @@ class AuthService {
     const accessToken = jwt.sign(
       { type: 'access' } as TokenPayload,
       this.jwtSecret,
-      { expiresIn: this.accessTokenExpiry }
+      { expiresIn: this.parseExpiry(this.accessTokenExpiry) }
     );
 
     const refreshToken = jwt.sign(
       { type: 'refresh' } as TokenPayload,
       this.jwtSecret,
-      { expiresIn: this.refreshTokenExpiry }
+      { expiresIn: this.parseExpiry(this.refreshTokenExpiry) }
     );
 
     // Parse expiry for response

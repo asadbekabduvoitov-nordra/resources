@@ -117,7 +117,6 @@ export function useBroadcasts() {
       const cancelled = await broadcastsApi.cancel(id);
       setBroadcasts((prev) => prev.map((b) => (b.id === id ? cancelled : b)));
       toast.success('Broadcast cancelled');
-      return cancelled;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to cancel broadcast';
       toast.error(message);

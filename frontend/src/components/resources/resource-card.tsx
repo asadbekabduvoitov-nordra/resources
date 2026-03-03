@@ -24,6 +24,7 @@ interface ResourceCardProps {
 const mediaTypeConfig = {
   image: { icon: Icons.image, label: 'Image', color: 'bg-blue-500' },
   video: { icon: Icons.video, label: 'Video', color: 'bg-purple-500' },
+  audio: { icon: Icons.audio, label: 'Audio', color: 'bg-green-500' },
   file: { icon: Icons.file, label: 'File', color: 'bg-orange-500' },
   none: { icon: Icons.none, label: 'Text', color: 'bg-gray-500' },
 };

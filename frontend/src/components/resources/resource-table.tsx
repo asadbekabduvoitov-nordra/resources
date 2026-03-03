@@ -31,6 +31,7 @@ interface ResourceTableProps {
 const mediaTypeConfig = {
   image: { icon: Icons.image, label: 'Image' },
   video: { icon: Icons.video, label: 'Video' },
+  audio: { icon: Icons.audio, label: 'Audio' },
   file: { icon: Icons.file, label: 'File' },
   none: { icon: Icons.none, label: 'Text' },
 };
