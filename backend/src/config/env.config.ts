@@ -15,6 +15,9 @@ export const env = {
     anonKey: process.env.SUPABASE_ANON_KEY!,
   },
 
+  // CORS
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+
   // Telegram
   telegram: {
     botToken: process.env.BOT_TOKEN!,

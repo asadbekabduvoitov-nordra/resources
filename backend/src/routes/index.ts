@@ -5,6 +5,7 @@ import { healthRoutes } from './health.routes';
 import { resourceRoutes } from './resource.routes';
 import { statsRoutes } from './stats.routes';
 import { broadcastRoutes } from './broadcast.routes';
+import { logsRoutes } from './logs.routes';
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -18,5 +19,8 @@ router.use('/users', authMiddleware, userRoutes);
 router.use('/resources', authMiddleware, resourceRoutes);
 router.use('/stats', authMiddleware, statsRoutes);
 router.use('/broadcasts', authMiddleware, broadcastRoutes);
+
+// System routes (uses admin password for auth)
+router.use('/system', logsRoutes);
 
 export { router as apiRoutes };

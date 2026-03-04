@@ -43,15 +43,51 @@ export function getBot(): Telegraf<BotContext> {
 export async function startBot(): Promise<void> {
   const bot = createBot();
 
+  // Log environment info for debugging
+  logger.info('Bot startup configuration:', {
+    nodeEnv: env.nodeEnv,
+    isProduction: env.isProduction,
+    webhookDomain: env.telegram.webhookDomain,
+    webhookPath: env.telegram.webhookPath,
+  });
+
   if (env.isProduction && env.telegram.webhookDomain) {
     // Use webhook in production
     const webhookUrl = `${env.telegram.webhookDomain}${env.telegram.webhookPath}`;
-    await bot.telegram.setWebhook(webhookUrl);
-    logger.info(`Bot webhook set to: ${webhookUrl}`);
+
+    logger.info(`Setting webhook to: ${webhookUrl}`);
+
+    try {
+      // Delete any existing webhook first, dropping pending updates to avoid duplicate messages
+      await bot.telegram.deleteWebhook({ drop_pending_updates: true });
+
+      // Set the new webhook
+      await bot.telegram.setWebhook(webhookUrl);
+
+      // Verify webhook was set
+      const webhookInfo = await bot.telegram.getWebhookInfo();
+      logger.info('Webhook configured successfully:', {
+        url: webhookInfo.url,
+        hasCustomCertificate: webhookInfo.has_custom_certificate,
+        pendingUpdateCount: webhookInfo.pending_update_count,
+      });
+    } catch (error) {
+      logger.error('Failed to set webhook:', error);
+      throw error;
+    }
   } else {
     // Use long polling in development
-    await bot.launch();
-    logger.info('Bot started with long polling');
+    logger.info('Starting bot with long polling mode');
+
+    try {
+      // Make sure no webhook is set
+      await bot.telegram.deleteWebhook({ drop_pending_updates: false });
+      await bot.launch();
+      logger.info('Bot started with long polling');
+    } catch (error) {
+      logger.error('Failed to start bot in polling mode:', error);
+      throw error;
+    }
   }
 
   // Graceful shutdown

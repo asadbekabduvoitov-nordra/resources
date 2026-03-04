@@ -7,17 +7,19 @@ import { env } from './config';
 import { apiRoutes } from './routes';
 import { errorHandler, notFoundHandler, requestLogger } from './middleware';
 import { getBot } from './bot';
+import { logger } from './utils/logger';
 
 export function createApp(): Application {
   const app = express();
 
   // Security middleware
   app.use(helmet());
+
+  // CORS configuration - supports multiple origins separated by comma
+  const corsOrigins = env.corsOrigin.split(',').map(origin => origin.trim());
   app.use(
     cors({
-      origin: env.isProduction
-        ? 'https://your-domain.com'
-        : ['http://localhost:3001', 'http://127.0.0.1:3001'],
+      origin: corsOrigins,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
@@ -43,9 +45,23 @@ export function createApp(): Application {
   app.use('/api', apiRoutes);
 
   // Telegram webhook endpoint (for production)
+  logger.info('Webhook route configuration:', {
+    isProduction: env.isProduction,
+    webhookDomain: env.telegram.webhookDomain,
+    webhookPath: env.telegram.webhookPath,
+    shouldRegisterWebhook: env.isProduction && !!env.telegram.webhookDomain,
+  });
+
   if (env.isProduction && env.telegram.webhookDomain) {
-    const bot = getBot();
-    app.use(env.telegram.webhookPath, bot.webhookCallback(env.telegram.webhookPath));
+    try {
+      const bot = getBot();
+      app.post(env.telegram.webhookPath, bot.webhookCallback(env.telegram.webhookPath));
+      logger.info(`✅ Webhook route registered at: ${env.telegram.webhookPath}`);
+    } catch (error) {
+      logger.error('❌ Failed to register webhook route:', error);
+    }
+  } else {
+    logger.warn('⚠️  Webhook route NOT registered (using polling mode)');
   }
 
   // Error handling
