@@ -101,7 +101,24 @@ class AuthApi {
     }
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
+    const token = this.getAccessToken();
+
+    // Call backend logout endpoint if we have a token
+    if (token) {
+      try {
+        await fetch(`${this.baseUrl}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      } catch {
+        // Ignore errors - we'll clear tokens anyway
+      }
+    }
+
+    // Clear tokens from storage
     this.clearTokens();
   }
 

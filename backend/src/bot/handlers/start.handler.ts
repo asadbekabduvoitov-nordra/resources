@@ -29,9 +29,15 @@ export async function startHandler(ctx: BotContext): Promise<void> {
     const welcomeMessage = `
 👋 <b>Assalomu alaykum, ${telegramUser.first_name}!</b>
 
-Botimizga xush kelibsiz! Bu yerda siz foydali resurslarni topishingiz mumkin.
+Siz Anora Mahkamova resurslar botiga xush kelibsiz.
 
-📚 Resurslarni ko'rish uchun quyidagi tugmani bosing:
+Bu yerda barcha o'qituvchilar uchun:
+📚 Bepul videodarslar
+📄 Amaliy qo'llanmalar va metodik materiallar
+🧠 Pedagoglar uchun foydali maslahatlar va tajribalar
+🎓 Attestatsiya va sertifikatga tayyorgarlik bo'yicha resurslar joylab boriladi.
+
+Resurslar muntazam yangilanib boriladi. Foydali materiallarni ko'rish uchun pastdagi tugmani bosing.
     `.trim();
 
     const keyboard = Markup.inlineKeyboard([

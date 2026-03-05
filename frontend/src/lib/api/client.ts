@@ -4,6 +4,8 @@ import { authApi } from './auth';
 
 class ApiClient {
   private baseUrl: string;
+  private isRefreshing = false;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor() {
     this.baseUrl = siteConfig.apiUrl;
@@ -43,19 +45,21 @@ class ApiClient {
 
     let response = await fetch(url, config);
 
-    // If unauthorized, try to refresh token
+    // If unauthorized, try to refresh token once
     if (response.status === 401 && token) {
-      const refreshed = await authApi.refresh();
+      const refreshSucceeded = await this.handleTokenRefresh();
 
-      if (refreshed) {
+      if (refreshSucceeded) {
         // Retry with new token
+        const newToken = authApi.getAccessToken();
         config.headers = {
           ...config.headers,
-          'Authorization': `Bearer ${refreshed.accessToken}`,
+          'Authorization': `Bearer ${newToken}`,
         };
         response = await fetch(url, config);
       } else {
-        // Refresh failed, redirect to login
+        // Refresh failed, clear tokens and redirect to login
+        authApi.clearTokens();
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
@@ -68,7 +72,7 @@ class ApiClient {
         error: { message: 'An error occurred' },
       }));
 
-      // Handle auth errors
+      // Handle auth errors after retry
       if (response.status === 401) {
         authApi.clearTokens();
         if (typeof window !== 'undefined') {
@@ -85,6 +89,33 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  /**
+   * Handle token refresh with promise caching to prevent multiple simultaneous refreshes
+   */
+  private async handleTokenRefresh(): Promise<boolean> {
+    // If already refreshing, wait for that promise
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    // Start new refresh
+    this.isRefreshing = true;
+    this.refreshPromise = authApi
+      .refresh()
+      .then((tokens) => {
+        this.isRefreshing = false;
+        this.refreshPromise = null;
+        return !!tokens;
+      })
+      .catch(() => {
+        this.isRefreshing = false;
+        this.refreshPromise = null;
+        return false;
+      });
+
+    return this.refreshPromise;
   }
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
